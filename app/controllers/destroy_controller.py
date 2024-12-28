@@ -15,7 +15,7 @@ router = APIRouter(
                summary="Delete stack",
                description="Delete stack with provided stack name.",
                response_description="Stack deleted successfully.")
-@permit_only([PulumiCommands.DESTROY])
+@permit_only([PulumiCommands.DESTROY, PulumiCommands.PREVIEW])
 def delete_stack(body: DeleteStackRequest, action: PulumiCommands):
     stack = PulumiStackService(stack_name=body.stack_name, project_name=body.project_name,
                                program_name=lambda *args: None)

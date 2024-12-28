@@ -93,7 +93,7 @@ More details can be found in **Swagger**:
   "stack_name": "ecs-poc-cluster",
   "project_name": "automation-dev",
   "ecs_fargate": {
-    "cluster_name": "automation-cluster"
+    "cluster_name": "automation"
   }
 }
 ```
@@ -119,7 +119,7 @@ More details can be found in **Swagger**:
     "desired_count": 1,
     "enable_load_balancer": false,
     "enabled": true,
-    "cluster_name": "automation-cluster"
+    "cluster_name": "automation-ecs-poc-cluster"
   }
 }
 ```
