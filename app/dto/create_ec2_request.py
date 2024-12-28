@@ -2,9 +2,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from app.services.ec2 import AwsEC2Model
-from app.services.iam import AwsIAMRoleModel
-from app.services.security_group.aws_security_group_model import AwsSecurityGroupModel
+from app.services.aws.models import AwsEC2Model, AwsIAMRoleModel
+from app.services.aws.security_group.aws_security_group_model import AwsSecurityGroupModel
 
 
 class CreateEC2Request(BaseModel):

@@ -2,52 +2,31 @@ from typing import Optional, List, Dict
 
 import pulumi
 import pulumi_aws as aws
-from attr import dataclass
 
-from app.services.iam import AssumeRoleService
+from app.services.aws.iam import AssumeRoleService
+from app.services.aws.models.aws_iam_role_model import AwsIAMRoleModel
+from app.services.helper.pulumi_helper import PulumiHelper as helper
 
 
-@dataclass(init=False)
 class AwsIAMRole:
-    name: str
-    enabled: Optional[bool] = True
-    assume_role_policy: Optional[str] = None
-    description: Optional[str] = None
-    max_session_duration: Optional[int] = None
-    tags: Optional[Dict[str, str]] = None
-    managed_policy_arns: Optional[List[str]] = None
-    inline_policies: Optional[Dict[str, str]] = None
-    role: Optional[aws.iam.Role] = None
-    enable_instance_profile: bool = True
-
-    def __init__(
-            self,
-            name: str,
-            enabled: Optional[bool] = True,
-            assume_role_policy: str = None,
-            description: Optional[str] = None,
-            max_session_duration: Optional[int] = None,
-            tags: Optional[Dict[str, str]] = None,
-            managed_policy_arns: Optional[List[str]] = None,
-            inline_policies: Optional[Dict[str, str]] = None,
-            enable_instance_profile: Optional[bool] = True
-    ):
-        self.enabled = enabled
+    def __init__(self, model: AwsIAMRoleModel):
+        self.enabled = model.enabled
         self.env = pulumi.get_stack()
-        self.name: str = f"{name}-{self.env}-role"
-        self.assume_role_policy: str = assume_role_policy
-        self.description: Optional[str] = description
-        self.max_session_duration: Optional[int] = max_session_duration or 3600
-        self.tags: Dict[str, str] = tags or {"Name": name}
-        self.managed_policy_arns: List[str] = managed_policy_arns or []
-        self.inline_policies: Dict[str, str] = inline_policies or {}
+        self.name: str = f"{model.name}-{self.env}-role"
+        self.assume_role_policy: AssumeRoleService = AssumeRoleService(model.assume_role_policy)
+        self.description: Optional[str] = model.description
+        self.max_session_duration: Optional[int] = model.max_session_duration or 3600
+        self.tags: Dict[str, str] = model.tags or helper.default_tags(self.name)
+        self.managed_policy_arns: List[str] = model.managed_policy_arns or []
+        self.inline_policies: Dict[str, str] = model.inline_policies or {}
         self.role: Optional[aws.iam.Role] = None
-        self.enable_instance_profile: bool = enable_instance_profile
+        self.enable_instance_profile: bool = model.enable_instance_profile
 
     def create_role(self):
+
         self.role = aws.iam.Role(
             resource_name=self.name,
-            assume_role_policy=self.assume_role_policy,
+            assume_role_policy=self.generate_assume_role_policy(self.assume_role_policy),
             description=self.description,
             max_session_duration=self.max_session_duration,
             tags=self.tags
@@ -103,15 +82,16 @@ class AwsIAMRole:
             "instance_profile_arn": instance_profile_arn
         }
 
-    @staticmethod
-    def generate_assume_role_policy(resource: AssumeRoleService):
-        return {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {"Service": resource.value},
-                    "Action": "sts:AssumeRole"
-                }
-            ]
-        }
+    def generate_assume_role_policy(self, resource: AssumeRoleService):
+        if self.assume_role_policy:
+            return {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {"Service": resource.value},
+                        "Action": "sts:AssumeRole"
+                    }
+                ]
+            }
+        return None

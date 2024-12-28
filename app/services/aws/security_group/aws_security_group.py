@@ -1,37 +1,20 @@
-from dataclasses import field
 from typing import List, Optional, Dict
 
 import pulumi
 import pulumi_aws
-from attr import dataclass
 
-from app.services.security_group.egress_rule_model import IngressRuleModel
-from app.services.security_group.rule_type import RuleType
+from app.services.aws.security_group.aws_security_group_model import AwsSecurityGroupModel
+from app.services.aws.security_group.rule_type import RuleType
 
 
-@dataclass(init=False)
 class AwsSecurityGroup:
-    name: str
-    vpc_id: str
-    ingress: IngressRuleModel
-    env: str = pulumi.get_stack()
-    egress: Optional[List[Dict]] = None
-    enabled: Optional[bool] = True
-
-    def __init__(
-            self,
-            name: str,
-            vpc_id: str,
-            ingress: List[Dict],
-            egress: Optional[List[Dict]] = None,
-            enabled: Optional[bool] = True,
-    ):
-        self.enabled = enabled
+    def __init__(self, model: AwsSecurityGroupModel):
+        self.enabled = model.enabled
         self.env = pulumi.get_stack()
-        self.name = f"{name}-{self.env}-sg"
-        self.vpc_id = vpc_id
-        self.ingress = ingress
-        self.egress = egress or self.default_egress()
+        self.name = f"{model.name}-{self.env}-sg"
+        self.vpc_id = model.vpc_id
+        self.ingress = model.ingress
+        self.egress = model.egress or self.default_egress()
         self.description = f"Security Group for {self.name}"
 
     @staticmethod
@@ -45,7 +28,7 @@ class AwsSecurityGroup:
         }]
 
     def create_security_group(self):
-        ingress_rules = [self.create_sg_rule(**rule) for rule in self.ingress]
+        ingress_rules = [self.create_sg_rule(**rule.model_dump()) for rule in self.ingress]
         egress_rules = [self.create_sg_rule(**rule) for rule in self.egress]
 
         sg = pulumi_aws.ec2.SecurityGroup(
@@ -68,7 +51,7 @@ class AwsSecurityGroup:
             protocol: str,
             cidr_blocks: Optional[List[str]] = None,
             prefix_list_ids: Optional[List[str]] = None,
-            security_groups: Optional[List[str]] = None,
+            security_groups: Optional[List[str]] = None
     ) -> Dict:
         def default_list(value: Optional[List[str]]) -> List[str]:
             return value if value else []

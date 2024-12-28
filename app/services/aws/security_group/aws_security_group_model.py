@@ -1,10 +1,8 @@
-from dataclasses import field
 from typing import List, Optional, Dict
 
-import pulumi
 from pydantic import BaseModel
 
-from app.services.security_group.ingress_rule_model import IngressRuleModel
+from app.services.aws.security_group.ingress_rule_model import IngressRuleModel
 
 
 class AwsSecurityGroupModel(BaseModel):
