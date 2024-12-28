@@ -1,6 +1,6 @@
 from pulumi import automation as auto
 
-from app.services.pulumi.dto import PulumiCommands
+from app.services.pulumi.pulumi_commands import PulumiCommands
 from app.services.pulumi.stack_operation import StackOperation
 
 

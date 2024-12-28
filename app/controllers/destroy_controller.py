@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.dto.delete_stack_request import DeleteStackRequest
 from app.security.command_validator import permit_only
-from app.services.pulumi.dto import PulumiCommands
+from app.services.pulumi.pulumi_commands import PulumiCommands
 from app.services.pulumi.pulumi_stack_service import PulumiStackService
 
 router = APIRouter(

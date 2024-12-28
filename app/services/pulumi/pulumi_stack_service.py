@@ -5,8 +5,8 @@ from pulumi import automation as auto
 
 from app.services.pulumi.create_stack import CreateStack
 from app.services.pulumi.destroy_stack import DestroyStack
-from app.services.pulumi.dto import PulumiCommands
 from app.services.pulumi.preview_stack import PreviewStack
+from app.services.pulumi.pulumi_commands import PulumiCommands
 
 
 class PulumiStackService:

@@ -3,7 +3,7 @@ from pulumi import automation as auto
 
 from app.dto.list_stacks_request import ListStackRequest
 from app.security.command_validator import permit_only
-from app.services.pulumi.dto import PulumiCommands
+from app.services.pulumi.pulumi_commands import PulumiCommands
 
 router = APIRouter(
     prefix="/list",
