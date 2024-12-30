@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulumi-automation
+    environment:
+      PULUMI_ACCESS_TOKEN: <token>
+      DB_CONNECTION_STRING: postgresql+psycopg2://postgres:mysecretpassword@postgres:5432/pulumi
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: pulumi
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
