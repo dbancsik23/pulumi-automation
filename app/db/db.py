@@ -28,32 +28,25 @@ def get_db() -> Generator[Session, Any, None]:
 
 def auto_create_db():
     try:
-        # Attempt to connect to the database and run migrations
         con = engine.connect()
         create_db()
         con.close()
 
     except Exception as _:
-        # If the connection fails, extract the connection string and database name
         connection_string, db_name = DB_CONNECTION_STRING.rsplit("/", 1)
         tmp_engine = create_engine(connection_string)
 
-        # Ensure that we handle the raw-connection properly
         raw_con = None
         try:
             raw_con = tmp_engine.raw_connection()
 
-            # This is Psycopg2-specific: Enable autocommit mode for the raw connection
-            raw_con.connection.set_session(autocommit=True)  # Avoids transaction block
+            raw_con.connection.set_session(autocommit=True)
 
-            # Execute the CREATE DATABASE query
             cursor = raw_con.cursor()
             cursor.execute(f"CREATE DATABASE {db_name}")
             cursor.close()
         finally:
-            # Ensure raw connection cleanup
             if raw_con:
                 raw_con.close()
 
-        # Initialize tables and run migrations for the new database
         create_db()

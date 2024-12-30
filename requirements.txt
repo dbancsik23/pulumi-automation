@@ -3,5 +3,3 @@ pulumi-aws>=6.0.2,<7.0.0
 fastapi
 sqlalchemy
 psycopg2
-aiohttp
-
