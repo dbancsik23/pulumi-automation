@@ -12,8 +12,7 @@ from app.services.helper.pulumi_helper import PulumiHelper as helper
 class AwsEC2Instance:
     def __init__(self, model: AwsEC2Model):
         self.enabled = model.enabled
-        self.env = pulumi.get_stack()
-        self.name: str = f"{model.name}-{self.env}"
+        self.name: str = f"{model.name}"
         self.instance_type: str = model.instance_type
         self.ami_id: str = model.ami_id
         self.vpc_security_group_ids: List[str] = model.vpc_security_group_ids or []

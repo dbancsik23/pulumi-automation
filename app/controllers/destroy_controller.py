@@ -19,4 +19,4 @@ router = APIRouter(
 def delete_stack(body: DeleteStackRequest, action: PulumiCommands):
     stack = PulumiStackService(stack_name=body.stack_name, project_name=body.project_name,
                                program_name=lambda *args: None)
-    return stack.execute_stack_operation(action)
+    return stack.execute_stack_operation(action, body.project_name, body.model_dump_json())

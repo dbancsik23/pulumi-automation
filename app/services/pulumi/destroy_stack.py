@@ -5,7 +5,7 @@ from app.services.pulumi.stack_operation import StackOperation
 
 
 class DestroyStack(StackOperation):
-    def execute(self, stack: auto.Stack):
+    def execute(self, stack: auto.Stack, project_name: str, body: str):
         destroy = stack.destroy(on_output=print)
         stack.workspace.remove_stack(stack.name)
         return destroy.summary

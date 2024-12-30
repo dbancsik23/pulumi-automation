@@ -11,8 +11,7 @@ from app.services.helper.pulumi_helper import PulumiHelper as helper
 class AwsIAMRole:
     def __init__(self, model: AwsIAMRoleModel):
         self.enabled = model.enabled
-        self.env = pulumi.get_stack()
-        self.name: str = f"{model.name}-{self.env}-role"
+        self.name: str = f"{model.name}-role"
         self.assume_role_policy: AssumeRoleService = AssumeRoleService(model.assume_role_policy)
         self.description: Optional[str] = model.description
         self.max_session_duration: Optional[int] = model.max_session_duration or 3600

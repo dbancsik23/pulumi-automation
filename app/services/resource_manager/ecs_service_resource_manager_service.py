@@ -15,16 +15,15 @@ class ECSServiceResourceManagerService(ResourceManager):
     def __init__(self, config: CreateECSServiceRequest):
         self.config = config
         self.resources = {}
-        self.env = config.stack_name
-        self.service_name = self.config.ecs_fargate.name
+        self.service_name = self.config.name
 
     def create_resources(self) -> dict:
         ecs_service = self.initialize_ecs_service()
 
-        if not self.config.ecs_fargate.vpc_security_group_ids:
+        if not self.config.vpc_security_group_ids:
             ecs_service.vpc_security_group_ids = [self.create_security_group()["sg_id"]]
 
-        if not self.config.ecs_fargate.task_role_arn:
+        if not self.config.task_role_arn:
             ecs_service.iam_role = self.create_fargate_iam_role()["role_arn"]
 
         execution_role = self.create_fargate_execution_role()
@@ -36,10 +35,10 @@ class ECSServiceResourceManagerService(ResourceManager):
         return self.resources
 
     def initialize_ecs_service(self) -> AwsECSFargate:
-        return factory.build(AwsEcsFargateModel(**self.config.ecs_fargate.model_dump()))
+        return factory.build(AwsEcsFargateModel(**self.config.model_dump()))
 
     def create_security_group(self) -> dict | None:
-        if not self.config.ecs_fargate.vpc_security_group_ids:
+        if not self.config.vpc_security_group_ids:
             security_group = self.create_default_security_group()
             self.resources["security_group"] = security_group
             return security_group
@@ -49,16 +48,16 @@ class ECSServiceResourceManagerService(ResourceManager):
 
     def create_custom_security_group(self) -> dict:
         return factory.build(AwsSecurityGroupModel(
-            name=self.config.ecs_fargate.name,
-            vpc_id=self.config.ecs_fargate.vpc_id,
-            ingress=self.config.ecs_fargate.ingress_rule,
-            egress=self.config.ecs_fargate.egress_rule
+            name=self.config.name,
+            vpc_id=self.config.vpc_id,
+            ingress=self.config.ingress_rule,
+            egress=self.config.egress_rule
         )).create_security_group()
 
     def create_default_security_group(self) -> dict:
         return factory.build(AwsSecurityGroupModel(
-            name=f"{self.config.ecs_fargate.name}-default",
-            vpc_id=self.config.ecs_fargate.vpc_id,
+            name=f"{self.config.name}-default",
+            vpc_id=self.config.vpc_id,
             ingress=[self.create_default_ingress_rule()]
         )).create_security_group()
 
@@ -67,7 +66,7 @@ class ECSServiceResourceManagerService(ResourceManager):
             enabled=True,
             name=f"{self.service_name}-ecs-execution",
             assume_role_policy=AssumeRoleService.ECS_TASK.value,
-            description=f"IAM execution role for {self.service_name}-{self.env}",
+            description=f"IAM execution role for {self.service_name}",
             tags=helper.default_tags(self.service_name),
             managed_policy_arns=[self.EXECUTION_ROLE_POLICY],
             enable_instance_profile=False
@@ -80,7 +79,7 @@ class ECSServiceResourceManagerService(ResourceManager):
             description=f"IAM role for {self.service_name} Fargate tasks",
             tags=helper.default_tags(self.service_name),
             managed_policy_arns=[self.EXECUTION_ROLE_POLICY],
-            inline_policies=self.config.ecs_fargate.inline_policies,
+            inline_policies=self.config.inline_policies,
             enable_instance_profile=False
         )).create_role()
 
