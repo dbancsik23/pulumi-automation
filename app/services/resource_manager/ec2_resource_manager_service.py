@@ -41,7 +41,6 @@ class EC2ResourceManagerService(ResourceManager):
             security_group = self.create_security_group()
             iam_role = self.create_iam_role()
             self.create_ec2_instance(security_group=security_group, iam_role=iam_role)
-
             return self.result
         except Exception as e:
             print(f"Error during resource creation, message: {str(e)}")

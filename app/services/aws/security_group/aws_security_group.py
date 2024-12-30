@@ -10,8 +10,7 @@ from app.services.aws.security_group.rule_type import RuleType
 class AwsSecurityGroup:
     def __init__(self, model: AwsSecurityGroupModel):
         self.enabled = model.enabled
-        self.env = pulumi.get_stack()
-        self.name = f"{model.name}-{self.env}-sg"
+        self.name = f"{model.name}-sg"
         self.vpc_id = model.vpc_id
         self.ingress = model.ingress
         self.egress = model.egress or self.default_egress()
@@ -37,7 +36,7 @@ class AwsSecurityGroup:
             vpc_id=self.vpc_id,
             egress=egress_rules,
             ingress=ingress_rules,
-            tags={"Name": self.name, "Environment": self.env},
+            tags={"Name": self.name},
         )
 
         pulumi.export(f"{self.name}_sg_id", sg.id)

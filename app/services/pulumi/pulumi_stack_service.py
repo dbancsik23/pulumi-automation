@@ -36,16 +36,17 @@ class PulumiStackService:
         except auto.ConcurrentUpdateError:
             raise HTTPException(status_code=409, detail=f"stack '{self.stack_name}' is currently being updated")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"stack '{self.stack_name}' could not be created, with {str(e)}")
+            raise HTTPException(status_code=500,
+                                detail=f"stack '{self.stack_name}' could not be created, with {str(e)}")
 
-    def execute_stack_operation(self, stack_operation: PulumiCommands):
+    def execute_stack_operation(self, stack_operation: PulumiCommands, project_name: str, body: str):
         try:
             stack = self.create_or_select_stack()
             for instance in self.instances:
                 if instance.get_type() == stack_operation:
                     logging.info(
                         f"executing stack operation '{stack_operation}', for project '{self.project_name}' and stack '{self.stack_name}'")
-                    return instance.execute(stack)
+                    return instance.execute(stack, project_name, body)
         except Exception as e:
             raise HTTPException(status_code=500,
                                 detail=f"stack operation '{stack_operation}' failed to execute, with {str(e)}")

@@ -17,8 +17,7 @@ class AwsECSFargate:
             model: AwsEcsFargateModel
     ):
         self.enabled = model.enabled
-        self.env = pulumi.get_stack()
-        self.name = f"{model.name}-{self.env}"
+        self.name = f"{model.name}"
         self.container_definitions = model.container_definitions
         self.cpu = model.cpu
         self.memory = model.memory

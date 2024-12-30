@@ -1,178 +1,232 @@
 # 🌟 Pulumi Python + FastAPI POC Project 🌟
 
-This is a **Proof of Concept (POC)** project showcasing the integration of **Pulumi Python** with **FastAPI** via the *
-*Pulumi Automation SDK**. 🎉
+A **Proof of Concept (POC)** showcasing the integration of **Pulumi Python** with **FastAPI** via the **Pulumi
+Automation SDK**. 🎉  
+This project demonstrates how Pulumi's IaC capabilities, in conjunction with FastAPI, can create RESTful endpoints for
+managing cloud resources dynamically.
+
+---
 
 ## 🏗️ Project Scope
 
-The core idea of this project is to create an **Infrastructure as Code (IaC) SaaS** platform, allowing users to
-dynamically manage cloud resources using REST endpoints. 🌐
+The goal of this project is to develop an **Infrastructure as Code (IaC) SaaS** platform that allows users to manage
+cloud resources through REST endpoints.
 
-### 🌟 Features:
+---
 
-✅ **AWS Cloud Resources**: Initial implementation supports AWS services such as:
+### 🌟 Features
 
-- **EC2** 🖥️
-- **IAM Roles** 🛡️
-- **ECS Fargate Clusters** 🚢
-- **Security Groups** 🔒
-
-✅ **RESTful Endpoints**: Testable locally via **OpenAPI Swagger
-**: [http://localhost:8001/docs#/](http://localhost:8001/docs#/)
+- **Cloud Resource Support**:
+    - **EC2 Instances** 🖥️
+    - **IAM Roles** 🛡️
+    - **ECS Fargate Clusters** 🚢
+    - **Security Groups** 🔒
+- **RESTful Endpoints**:
+    - All endpoints are available via **OpenAPI Swagger**: [http://localhost:8001/docs](http://localhost:8001/docs)
+- **Pulumi State Management**:
+    - Stateful management for consistent cloud deployments.
+    - Full lifecycle operations including `CREATE`, `PREVIEW`, `UP`, and `DESTROY`.
 
 ![Pulumi Architecture](img.png)
 
 ---
 
-### 🎯 Action Controllers:
+## 📋 Prerequisites
 
-- **Action Types**: `CREATE`, `PREVIEW`, `UP`, and `DESTROY`. These determine the operations to perform:
-    - `PREVIEW` 🔎: Executes like the Pulumi `preview` command, showing changes without applying them.
-    - `UP` 🚀: Deploys the desired resources.
-    - `DESTROY` 🗑️: Deletes resources.
+Ensure the following prerequisites are met before running the application:
 
-> Both actions support **state validation** and resource lifecycle management for an accurate and secure IaC process.
-
-## 📋 Prerequisites:
-
-Before running the application, ensure the following are in place:
-
-1. ✅ **Pulumi Access Token**: Generate one at [Pulumi Tokens](https://app.pulumi.com/user/settings/tokens), then set it
-   as an environment variable:
-
-```plaintext
-PULUMI_ACCESS_TOKEN=<your_pulumi_access_token>
-```
-
-2. ✅ **AWS CLI Default Profile**: Proper AWS credentials in the default profile for access.
-3. ✅ Tooling:
+1. **Pulumi Access Token**: Generate a token from [Pulumi Tokens](https://app.pulumi.com/user/settings/tokens) and set
+   it as an environment variable:
+   ```plaintext
+   PULUMI_ACCESS_TOKEN=<your_pulumi_access_token>
+   ```
+2. **AWS CLI Default Profile**: AWS credentials should be properly configured in the default profile.
+3. **Database Configuration** (Required for resource tracking):
+    - Set up a PostgreSQL database and configure the following environment variable:
+      ```plaintext
+      DB_CONNECTION_STRING=postgresql+psycopg2://<username>:<password>@<host>:<port>/<database>
+      ```
+    - This will store state and configuration for created resources.
+4. Tooling:
     - **Python** 🐍
     - **Pip** 📦
     - **Pulumi CLI** 🔧
     - (**Optional**) **AWS CLI** 🪄
 
-All Python dependencies will be automatically installed from the `requirements.txt` file.
-
 ---
 
 ## 🚀 How to Start the Application
 
-1. Run the main Python application file:
+1. Run the main application:
    ```bash
    python __main__.py
    ```
-2. Application will be hosted locally at: **[http://localhost:8001](http://localhost:8001)**
+2. The application will start locally at: [http://localhost:8001](http://localhost:8001)
 
 ---
 
-## ✨ Why Pulumi? What’s the Value?
+## ✨ Why Pulumi?
 
-### Key Benefits:
+**Pulumi** enables **stateful IaC implementation** with robust state management, multi-cloud adaptability, and APIs for
+automation. Key advantages include:
 
-1. 🚀 **Stateful IaC Implementation**: Pulumi provides a robust state management system, ensuring deployments track
-   resources across the deployment lifecycle.
-2. 🔄 **Cross-Cloud Adaptability**: Resource management logic is shared across cloud providers, reducing complexity and
-   maintenance compared to CDKs.
-3. 🔧 **Automation-Friendly**: Pulumi’s **Automation SDK** is a wrapper around the CLI, making it easy to build **SaaS**
-   platforms with stable IaC workflows.
-
-> Pulumi also provides commands like `REFRESH` to ensure resources are consistent with the declared state. This is a *
-*huge advantage** over CDKs, which lack comparable state management capabilities. 💪
+1. 🌎 **Multi-cloud Adaptability**: Centralized logic across cloud platforms.
+2. 💾 **State Management**: Pulumi ensures resources remain consistent with defined states.
+3. 🛠️ **SaaS/Automation-Friendly**: Powered by the Automation SDK for easier development of scalable tools.
 
 ---
 
-## 📦 Example Usage (Testing Bodies)
+## 🗄️ Database Integration
 
-Below are some examples of request bodies you can use. 🌟  
-More details can be found in **Swagger**:
+This project uses PostgreSQL for managing resource and stack configurations.
 
-### 🚢 **Create an ECS Cluster**
+### **Configuration**
 
+- Set the `DB_CONNECTION_STRING` environment variable for database connectivity:
+  ```plaintext
+  DB_CONNECTION_STRING=postgresql+psycopg2://<username>:<password>@<host>:<port>/<database>
+  ```
+
+### **Data Stored**
+
+Whenever resources (stacks) are created or modified, the following details are tracked in the database:
+
+- `id`: Unique identifier for the stack.
+- `project_name`: Project name associated with the stack.
+- `stack_name`: Name of the stack.
+- `created_at`: Timestamp of creation.
+- `updated_at`: Timestamp of the last update.
+- `stack_configuration`: JSON configuration of the stack.
+- `stack_output`: JSON output of the stack's results.
+
+The table structure is optimized for tracking resource lifecycle, state, and output.
+
+---
+
+## 🎯 Core Endpoints and Actions
+
+Below is a high-level overview of the available controllers and their functionalities.
+
+---
+
+### 🔍 Stack Management
+
+- **Get Stack Details**: `/stacks/{project_name}/{stack_name}` (GET)
+    - Fetches stack configuration and status.
+
+---
+
+### 🚢 ECS Management
+
+#### **Manage ECS Infrastructure**
+
+- **Endpoint**: `/manage-resources/ecs/infra` (POST)
+- **Description**: Enables the creation and management of ECS infrastructure, including both ECS clusters and Fargate
+  services.
+
+#### **Benefits**
+
+- **Stateful Resource Management**: Each created cluster and service is treated as a dedicated resource with its own
+  state, ensuring precise tracking and lifecycle management.
+- **Seamless Resource Separation**: Provides effective segmentation and isolation of resources, making them easier to
+  manage individually.
+- **Scalability**: Supports the creation of multiple clusters and services, allowing for flexible and scalable
+  infrastructure design.
+
+#### ***Note: This is a POC, async deployments are not covered***
+
+![ECS Infrastructure](img_1.png)
+
+**Request Payload Example**:
 ```json
 {
-  "stack_name": "ecs-poc-cluster",
+  "stack_name": "poc",
   "project_name": "automation-dev",
-  "ecs_fargate": {
-    "cluster_name": "automation"
-  }
-}
-```
-
----
-
-### 🔒 **Create an ECS Service with IAM & Security Group**
-
-```json
-{
-  "stack_name": "ecs-poc-service",
-  "project_name": "automation-dev",
-  "ecs_fargate": {
-    "name": "pulumi-at",
-    "subnet_ids": [
-      "subnet-0ac23ab19ef387fbc"
-    ],
-    "vpc_id": "vpc-01c3be072799793f4",
-    "container_definitions": {
-      "container_name": "pulumi-at",
-      "image": "pulumi-at:latest"
-    },
-    "desired_count": 1,
-    "enable_load_balancer": false,
-    "enabled": true,
-    "cluster_name": "automation-ecs-poc-cluster"
-  }
-}
-```
-
----
-
-### 🖥️ **Create an EC2 Instance with Bound IAM & Security Group**
-
-```json
-{
-  "stack_name": "ec2-instance",
-  "project_name": "automation-dev",
-  "security_group": {
-    "name": "automation-poc",
-    "vpc_id": "vpc-01c3be072799793f4",
-    "ingress": [
-      {
-        "rule_type": "ingress",
-        "protocol": "tcp",
-        "from_port": 80,
-        "to_port": 80,
-        "cidr_blocks": [
-          "0.0.0.0/0"
-        ]
+  "ecs_cluster": [
+    {
+      "ecs_cluster": {
+        "cluster_name": "poc-int"
       }
-    ]
-  },
-  "iam_role": {
-    "name": "automation-poc",
-    "description": "IAM role for EC2 instances",
-    "managed_policy_arns": [
-      "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
-      "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
-    ],
-    "inline_policies": {
-      "S3AccessPolicy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Action\": \"s3:*\", \"Resource\": \"*\"}]}"
+    },
+    {
+      "ecs_cluster": {
+        "cluster_name": "poc-ext"
+      }
     }
-  },
-  "ec2_instance": {
-    "name": "pul-atm",
-    "instance_type": "t2.micro",
-    "ami_id": "ami-0b5673b5f6e8f7fa7",
-    "subnet_id": "subnet-0ac23ab19ef387fbc"
-  }
+  ],
+  "ecs_fargate_services": [
+    {
+      "ecs_fargate": {
+        "name": "poc-int-srv",
+        "subnet_ids": [
+          "subnet-0ac23ab19ef387fbc"
+        ],
+        "vpc_id": "vpc-01c3be072799793f4",
+        "container_definitions": {
+          "container_name": "poc-int",
+          "image": "poc-int:latest"
+        },
+        "desired_count": 1,
+        "enable_load_balancer": false,
+        "enabled": true,
+        "cluster_name": "poc-int-cluster"
+      }
+    },
+    {
+      "ecs_fargate": {
+        "name": "poc-ext-srv",
+        "subnet_ids": [
+          "subnet-0ac23ab19ef387fbc"
+        ],
+        "vpc_id": "vpc-01c3be072799793f4",
+        "container_definitions": {
+          "container_name": "poc-ext",
+          "image": "poc-ext:latest"
+        },
+        "desired_count": 1,
+        "enable_load_balancer": false,
+        "enabled": true,
+        "cluster_name": "poc-ext-cluster"
+      }
+    }
+  ]
 }
 ```
 
 ---
 
-## 🔍 Conclusion
+### 🔍 Stack Operations
 
-This POC leverages Pulumi's extensive IaC capabilities to provide a scalable, cross-cloud solution with a **stateful
-architecture**. 💡 It demonstrates how Pulumi's **Automation SDK + FastAPI** can create dynamic, API-driven cloud
-resource management tools. 🌎
+#### **List Stacks**
 
-> **Note**: Being a POC, it should be treated as such and not used in production without necessary adjustments. ⚠️
+- **Endpoint**: `/list/stacks` (POST)
+
+**Request Payload**:
+
+```json
+{
+  "project_name": "automation-dev"
+}
+```
+
+#### **Delete Stack**
+
+- **Endpoint**: `/destroy/stack` (DELETE)
+
+**Request Payload Example**:
+```json
+{
+  "project_name": "automation-dev",
+  "stack_name": "ec2-instance"
+}
+```
+
+---
+
+## 🔗 Conclusion
+
+This POC demonstrates how Pulumi’s powerful **stateful IaC** and **Automation SDK** can integrate with **FastAPI** to
+build scalable and dynamic cloud resource management tools. While this implementation isn't production-ready, it offers
+a concrete foundation for further development.
+
+⚠️ **Note**: Use this project as a learning tool and reference, not for production environments.
